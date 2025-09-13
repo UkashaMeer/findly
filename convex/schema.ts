@@ -11,7 +11,7 @@ const schema = defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_clerk_id", ["clerkId"]),
-  
+
   items: defineTable({
     title: v.string(),
     description: v.string(),
@@ -25,7 +25,8 @@ const schema = defineSchema({
     status: v.union(
       v.literal("Lost"),
       v.literal("Found"),
-    )
+    ),
+    userId: v.id("users"), 
   })
 });
 
