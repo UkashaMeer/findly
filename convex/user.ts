@@ -5,15 +5,39 @@ export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
     const id = await ctx.auth.getUserIdentity()
-    if(id === null){
+    if (id === null) {
       return null
     }
 
     return ctx.db
-    .query("users")
-    .withIndex("by_clerk_id", (q) => q.eq("clerkId", id.subject))
-    .first()
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", id.subject))
+      .first()
   }
+})
+
+export const updateUserName = mutation({
+  args: {
+    name: v.string()
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (identity === null) {
+      return null
+    }
+
+    const user = await ctx.db.query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+    .first()
+
+    if (!user) throw new Error("Unauthorized User")
+
+    await ctx.db.patch(user?._id, {
+      name: args.name,
+      updatedAt: Date.now(),
+    })
+    return {success: true}
+  },
 })
 
 export const saveUser = mutation({
@@ -38,8 +62,8 @@ export const saveUser = mutation({
         role: "user",
         image: args.image,
         clerkId: identity.subject,
-        createdAt: Date.now(),    
-        updatedAt: Date.now(),    
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       });
     }
   },

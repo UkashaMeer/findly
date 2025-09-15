@@ -20,7 +20,7 @@ const items = [
   },
   {
     title: " My Posts",
-    url: "#",
+    url: "/user/posts",
     icon: StickyNote,
   },
   {

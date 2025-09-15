@@ -11,48 +11,71 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import { Label } from "../ui/label"
-import { Textarea } from "../ui/textarea"
-import { useState } from "react"
-import LocationPicker from "./Map"
+import { Button } from "../../ui/button"
+import { Input } from "../../ui/input"
+import { Label } from "../../ui/label"
+import { Textarea } from "../../ui/textarea"
+import { useEffect, useState } from "react"
+import LocationPicker from "../Map"
 import { useMutation } from "convex/react"
-import { api } from "../../../convex/_generated/api"
+import { api } from "../../../../convex/_generated/api"
+import { toast } from "sonner"
 
-export default function CreatePost({ open, setOpen }: any) {
+export default function EditPost({ open, setOpen, postTitle, postCategory, postImageUrl, postLocation, postDescription, postStatus, postId }: any) {
 
-    const createItem = useMutation(api.item.create)
+    const editItem = useMutation(api.item.update)
+    const generateUrl = useMutation(api.item.generateUrl)
 
-    const [title, setTitle] = useState("")
-    const [description, setDescription] = useState("")
-    const [category, setCategory] = useState<"Phone" | "Wallet" | "Card" | "Other" | null>(null)
-    const [location, setLocation] = useState<any>(null)
-    const [status, setStatus] = useState<"Lost" | "Found" | null>(null)
+    const [title, setTitle] = useState(postTitle)
+    const [description, setDescription] = useState(postDescription)
+    const [category, setCategory] = useState<"Phone" | "Wallet" | "Card" | "Other" | null>(postCategory)
+    const [location, setLocation] = useState<any>(postLocation)
+    const [status, setStatus] = useState<"Lost" | "Found" | null>(postStatus)
+    const [file, setFile] = useState<File | null>(postImageUrl)
 
     const handleLocationSelect = (location: any) => {
         setLocation(location)
     }
 
+    useEffect(() => {
+        if (open) {
+            setTitle(postTitle)
+            setDescription(postDescription)
+            setCategory(postCategory)
+            setLocation(postLocation)
+            setStatus(postStatus)
+            setFile(postImageUrl)
+        }
+    }, [open, postTitle, postDescription, postCategory, postLocation, postStatus])
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
+        const url = await generateUrl()
+
+        const result = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": file?.type as string },
+            body: file,
+        });
+
+        const { storageId } = await result.json()
+        console.log(storageId)
+
         try {
-            await createItem({
+            await editItem({
+                itemId: postId,
                 title,
                 description,
                 category: category as "Phone" | "Wallet" | "Card" | "Other",
                 location: location?.address ?? "",
                 status: status as "Lost" | "Found",
+                ...(file ? { imageId: storageId } : {}),
             })
 
-            setTitle("")
-            setDescription("")
-            setCategory(null)
-            setLocation(null)
-            setStatus(null)
+            setOpen(false)
+            toast.success("Post Updated Successfully.")
 
-            alert("created Successfully")
         }
         catch (err) {
             console.log(err)
@@ -63,7 +86,7 @@ export default function CreatePost({ open, setOpen }: any) {
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetContent>
                 <SheetHeader>
-                    <SheetTitle>Post Item</SheetTitle>
+                    <SheetTitle>Edit Item</SheetTitle>
                 </SheetHeader>
                 <form onSubmit={handleSubmit} className="grid flex-1 auto-rows-min gap-6 px-4 overflow-y-auto pt-2 pb-6">
                     <div className="grid gap-3">
@@ -87,6 +110,7 @@ export default function CreatePost({ open, setOpen }: any) {
                             </SelectContent>
                         </Select>
                     </div>
+                    <Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
                     <div className="grid gap-3">
                         <Label htmlFor="title">Location</Label>
                         <LocationPicker onLocationSelect={handleLocationSelect} />

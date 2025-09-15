@@ -5,7 +5,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { UserButton } from "@clerk/nextjs";
 import { useState } from "react";
-import CreatePost from "./createPost";
+import CreatePost from "./Post/createPost";
 
 export default function Header() {
     const [open, setOpen] = useState(false)
@@ -22,7 +22,7 @@ export default function Header() {
             <div className="flex items-center gap-6">
                 <BellDotIcon size={20} />
                 <MessageCircle size={20} />
-                <UserButton />
+                <UserButton afterSignOutUrl="/sign-in" />
             </div>
         </div>
         <CreatePost open={open} setOpen={setOpen} />

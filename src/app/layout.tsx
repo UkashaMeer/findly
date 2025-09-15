@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import ConvexClientProvider from "./ConvexProviderWithClerk";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "sonner";
 
 const outfitSans = Outfit({
   variable: "--font-outfit",
@@ -28,6 +29,7 @@ export default function RootLayout({
         >
           <ConvexClientProvider>
             {children}
+            <Toaster />
           </ConvexClientProvider>
         </ClerkProvider>
       </body>

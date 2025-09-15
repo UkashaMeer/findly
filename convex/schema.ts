@@ -26,8 +26,12 @@ const schema = defineSchema({
       v.literal("Lost"),
       v.literal("Found"),
     ),
-    userId: v.id("users"), 
-  })
+    imageId: v.id("_storage"),
+    userId: v.id("users"),
+    createdAt: v.optional(v.float64()),
+    updatedAt: v.optional(v.float64()),
+  }).index("by_userId", ["userId"])
+
 });
 
 export default schema
