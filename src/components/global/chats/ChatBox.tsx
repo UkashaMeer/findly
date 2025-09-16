@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -9,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import { User } from "@/lib/types"
-import { toast } from "sonner"
 import { Id } from "../../../../convex/_generated/dataModel"
 import { useSearchParams } from "next/navigation"
 
@@ -64,7 +62,7 @@ export default function WhatsAppLayout() {
     <div className="h-[91.5vh] w-full p-0 overflow-hidden relative flex">
       <div className="w-1/4 h-full relative overflow-hidden border-r">
         <div className="h-fit px-2 py-3 sticky w-full border-b font-semibold">Chats</div>
-        <div className="overflow-y-auto h-full w-full">
+        <ScrollArea className="overflow-y-auto h-full w-full">
           <div className="flex flex-col">
             {conversations?.map((conversation) =>
               conversation.participants
@@ -93,7 +91,7 @@ export default function WhatsAppLayout() {
                   </div>
                 )))}
           </div>
-        </div>
+        </ScrollArea>
       </div>
 
       {/* Right Chat Window */}
