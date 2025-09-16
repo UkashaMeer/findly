@@ -61,10 +61,10 @@ export default function WhatsAppLayout() {
   }
 
   return (
-    <Card className="w-full h-full grid grid-cols-[250px_1fr] gap-0 p-0">
-      <div className="border-r flex flex-col">
-        <div className="p-4 font-semibold border-b">Chats</div>
-        <ScrollArea className="flex-1">
+    <div className="h-[91.5vh] w-full p-0 overflow-hidden relative flex">
+      <div className="w-1/4 h-full relative overflow-hidden border-r">
+        <div className="h-fit px-2 py-3 sticky w-full border-b font-semibold">Chats</div>
+        <div className="overflow-y-auto h-full w-full">
           <div className="flex flex-col">
             {conversations?.map((conversation) =>
               conversation.participants
@@ -81,7 +81,11 @@ export default function WhatsAppLayout() {
                   >
                     <Avatar>
                       <AvatarImage src={user?.image} />
-                      <AvatarFallback>{user?.name}</AvatarFallback>
+                      <AvatarFallback>{user?.name.split(' ')
+                        .map(word => word[0])
+                        .join('')
+                        .toUpperCase()
+                        .slice(0, 2)}</AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="font-medium">{user?.name}</p>
@@ -89,15 +93,19 @@ export default function WhatsAppLayout() {
                   </div>
                 )))}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Right Chat Window */}
-      <div className="flex flex-col justify-between">
-        <div className="flex items-center border-b gap-2 px-4 py-3">
+      <div className="w-3/4 h-full relative overflow-hidden flex flex-col justity-between">
+        <div className="h-fit p-2 flex items-center gap-2 border-b sticky w-full">
           <Avatar>
             <AvatarImage src={activeUser?.image} />
-            <AvatarFallback>{activeUser?.name}</AvatarFallback>
+            <AvatarFallback>{activeUser?.name.split(' ')
+              .map(word => word[0])
+              .join('')
+              .toUpperCase()
+              .slice(0, 2)}</AvatarFallback>
           </Avatar>
           <div className="font-semibold">
             {activeUser?.name || "Select a chat"}
@@ -106,8 +114,8 @@ export default function WhatsAppLayout() {
 
         {
           activeUser && (
-            <ScrollArea className="flex-1 p-4 text-sm">
-              <div className="flex flex-col gap-2">
+            <ScrollArea className="overflow-y-auto h-full w-full px-6 text-sm">
+              <div className="flex flex-col gap-2 py-2">
                 {messages?.map((msg) => (
                   <div
                     key={msg._id}
@@ -131,7 +139,7 @@ export default function WhatsAppLayout() {
 
 
         {activeUser && (
-          <form onSubmit={handleSendMessage} className="p-3 flex gap-2 border-t">
+          <form onSubmit={handleSendMessage} className="p-3 flex gap-2 border-t h-fit w-full sticky">
             <Input
               placeholder="Type a message..."
               value={message}
@@ -141,6 +149,6 @@ export default function WhatsAppLayout() {
           </form>
         )}
       </div>
-    </Card>
+    </div>
   )
 }
