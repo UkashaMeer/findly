@@ -6,13 +6,12 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { useQuery } from 'convex/react'
-import { api } from '../../../../convex/_generated/api'
-import { MapPin, Clock, Tag, Phone, Share2, ExternalLink,  Heart, Repeat2, Copy, CheckCircle2 } from 'lucide-react'
+import { MapPin, Clock, Tag, Phone, Share2, ExternalLink, Heart, Repeat2, Copy, CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { formatTime } from "@/lib/formatTime"
 import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar"
 import PostCardSelect from "./PostCardSelect"
+import CreateConversation from "../chats/CreateConversation"
 
 const StatusBadge = ({ status }: { status: string }) => {
     const isLost = status === "Lost"
@@ -27,7 +26,7 @@ const StatusBadge = ({ status }: { status: string }) => {
     )
 }
 
-export function PostCards({items}: {items: any}) {
+export function PostCards({ items }: { items: any }) {
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
     const [likedItems, setLikedItems] = useState<Record<string, boolean>>({})
     const [showShareMenu, setShowShareMenu] = useState<Record<string, boolean>>({})
@@ -188,10 +187,11 @@ export function PostCards({items}: {items: any}) {
                         <CardFooter className="border-t bg-muted/20 px-6 !py-3">
                             <div className="flex items-center justify-between w-full">
                                 <div className="flex items-center gap-1.5">
-                                    <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-sm text-xs font-medium hover:bg-primary/90 transition-colors cursor-pointer">
-                                        <Phone size={14} />
-                                        Contact
-                                    </button>
+                                    {
+                                        !item.isOwner && (
+                                            <CreateConversation chatWithUserId={item.user.id} />
+                                        )
+                                    }
 
                                     <div className="relative">
                                         <button

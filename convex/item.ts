@@ -69,7 +69,7 @@ export const getAll = query({
       throw new Error("Unauthorized User");
     }
 
-    const items = await ctx.db.query("items").collect();
+    const items = await ctx.db.query("items").order("desc").collect();
 
     const itemsWithUsers = await Promise.all(
       items.map(async (item) => {
@@ -112,6 +112,7 @@ export const getMine = query({
 
     const items = await ctx.db.query("items")
       .withIndex("by_userId", (q) => q.eq("userId", user?._id))
+      .order("desc")
       .collect()
 
     const itemsWithUsers = await Promise.all(

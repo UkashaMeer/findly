@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import ChatBox from "@/components/global/chats/ChatBox"
 
 function User() {
 
@@ -55,7 +56,7 @@ function User() {
   }
 
   return (
-    <main className="flex flex-col w-1/2 items-center gap-2 p-6">
+    <main className="">
       {
         user?.name === "" ? (
           <Dialog open={openNamePopup} onOpenChange={setOpenNamePopup}>
@@ -70,7 +71,9 @@ function User() {
             </DialogContent>
           </Dialog>
         ) : (
-          <PostCards items={items} />
+          <div className="flex gap-2 p-6 w-1/2">
+            <PostCards items={items} />
+          </div>          
         )
       }
     </main>
