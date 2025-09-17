@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
-import ConvexClientProvider from "./ConvexProviderWithClerk";
-import { ClerkProvider } from "@clerk/nextjs";
-import { Toaster } from "sonner";
+import Providers from "./Providers";
 
 const outfitSans = Outfit({
   variable: "--font-outfit",
@@ -24,15 +22,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${outfitSans.className}`}>
-        <ClerkProvider
-          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-        >
-          <ConvexClientProvider>
-            {children}
-            <Toaster />
-          </ConvexClientProvider>
-        </ClerkProvider>
+        <Providers>
+              {children}
+        </Providers>
       </body>
+
     </html>
   );
 }

@@ -15,10 +15,16 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { Skeleton } from "@/components/ui/skeleton"
 import { PostCardsSkeleton } from "@/components/global/Post/PostCardsSkeleton"
+import { useSelector } from "react-redux"
+import { RootState } from "../redux/store"
+
+
 
 function User() {
+
+  const search = useSelector((state: RootState) => state.search.value)
+
   const [openNamePopup, setOpenNamePopup] = useState<boolean>(false)
   const [userName, setUserName] = useState<string>("")
   const [category, setCategory] = useState<string>("All Posts")
@@ -51,7 +57,9 @@ function User() {
     category: category === "All Posts" ? "All Posts" : category,
     status: status === "all" ? "all" : status,
     createdAt: timeFilter === "all" ? undefined : timeFilter,
+    search,
   })
+  console.log(search)
   const { isSignedIn } = useUser()
   const router = useRouter()
 

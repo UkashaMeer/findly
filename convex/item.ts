@@ -65,23 +65,35 @@ export const getAll = query({
     category: v.optional(v.string()),
     status: v.optional(v.string()),
     createdAt: v.optional(v.string()),
+    search: v.optional(v.string())
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-
-    if (!identity) {
-      throw new Error("Unauthorized User");
-    }
+    if (!identity) throw new Error("Unauthorized User");
 
     let items = await ctx.db.query("items").order("desc").collect();
 
-    if (args.category !== "All Posts") {
-      items = items.filter(i => i.category === args.category)
+    // ✅ search filter
+    if (args.search && args.search.trim().length > 0) {
+      const search = args.search.toLowerCase();
+      items = items.filter((i) => {
+        const title = i.title?.toLowerCase() || "";
+        const description = i.description?.toLowerCase() || "";
+        return title.includes(search) || description.includes(search);
+      });
     }
 
-    if (args.status !== "all") {
-      items = items.filter(i => i.status === args.status)
+    // ✅ category filter
+    if (args.category && args.category !== "All Posts") {
+      items = items.filter((i) => i.category === args.category);
     }
+
+    // ✅ status filter
+    if (args.status && args.status !== "all") {
+      items = items.filter((i) => i.status === args.status);
+    }
+
+    // ✅ time filter (_creationTime instead of createdAt)
     if (args.createdAt && args.createdAt !== "all") {
       const now = Date.now();
       let fromTime = 0;
@@ -91,39 +103,44 @@ export const getAll = query({
           fromTime = now - 24 * 60 * 60 * 1000;
           break;
         case "week":
-          fromTime = now - 7 * 24 * 60 * 60 * 1000; 
+          fromTime = now - 7 * 24 * 60 * 60 * 1000;
           break;
         case "30days":
           fromTime = now - 30 * 24 * 60 * 60 * 1000;
           break;
       }
 
-      items = items.filter(i => i.createdAt !== undefined ? i.createdAt >= fromTime : "");
+      items = items.filter((i) => i._creationTime >= fromTime);
     }
 
-
+    // ✅ attach user info
     const itemsWithUsers = await Promise.all(
       items.map(async (item) => {
-        const user = await ctx.db.get(item.userId)
+        const user = await ctx.db.get(item.userId);
         return {
           ...item,
           createdAt: item._creationTime,
-          imageUrl: item.imageId ? await ctx.storage.getUrl(item.imageId) : null,
-          user: user ? {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            image: user.image,
-            role: user.role,
-          } : null,
-          isOwner: user?.clerkId === identity.subject
-        }
+          imageUrl: item.imageId
+            ? await ctx.storage.getUrl(item.imageId)
+            : null,
+          user: user
+            ? {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                image: user.image,
+                role: user.role,
+              }
+            : null,
+          isOwner: user?.clerkId === identity.subject,
+        };
       })
-    )
+    );
 
     return itemsWithUsers;
   },
 });
+
 
 export const getMine = query({
   args: {},
