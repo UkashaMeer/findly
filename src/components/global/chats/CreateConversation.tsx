@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { useMutation } from "convex/react";
 import { MessageCircle } from "lucide-react";
 import { api } from "../../../../convex/_generated/api";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export default function CreateConversation({ chatWithUserId }: any) {

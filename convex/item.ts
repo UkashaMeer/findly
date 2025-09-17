@@ -61,15 +61,46 @@ export const generateUrl = mutation(async (ctx) => {
 });
 
 export const getAll = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    category: v.optional(v.string()),
+    status: v.optional(v.string()),
+    createdAt: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
       throw new Error("Unauthorized User");
     }
 
-    const items = await ctx.db.query("items").order("desc").collect();
+    let items = await ctx.db.query("items").order("desc").collect();
+
+    if (args.category !== "All Posts") {
+      items = items.filter(i => i.category === args.category)
+    }
+
+    if (args.status !== "all") {
+      items = items.filter(i => i.status === args.status)
+    }
+    if (args.createdAt && args.createdAt !== "all") {
+      const now = Date.now();
+      let fromTime = 0;
+
+      switch (args.createdAt) {
+        case "24h":
+          fromTime = now - 24 * 60 * 60 * 1000;
+          break;
+        case "week":
+          fromTime = now - 7 * 24 * 60 * 60 * 1000; 
+          break;
+        case "30days":
+          fromTime = now - 30 * 24 * 60 * 60 * 1000;
+          break;
+      }
+
+      items = items.filter(i => i.createdAt !== undefined ? i.createdAt >= fromTime : "");
+    }
+
 
     const itemsWithUsers = await Promise.all(
       items.map(async (item) => {

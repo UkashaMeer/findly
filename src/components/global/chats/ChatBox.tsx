@@ -59,7 +59,7 @@ export default function WhatsAppLayout() {
   }
 
   return (
-    <div className="h-[91.5vh] w-full p-0 overflow-hidden relative flex">
+    <div className="h-[91.5vh] w-full p-0 overflow-hidden relative flex mt-13.5 bg-white">
       <div className="w-1/4 h-full relative overflow-hidden border-r">
         <div className="h-fit px-2 py-3 sticky w-full border-b font-semibold">Chats</div>
         <ScrollArea className="overflow-y-auto h-full w-full">
@@ -70,7 +70,7 @@ export default function WhatsAppLayout() {
                 .map(user => (
                   <div
                     key={user?._id}
-                    className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-accent ${activeUser?._id === user?._id ? "bg-accent" : ""
+                    className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-primary/10 ${activeUser?._id === user?._id ? "bg-primary/10" : ""
                       }`}
                     onClick={() => {
                       setActiveUser(user)

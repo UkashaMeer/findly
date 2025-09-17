@@ -30,7 +30,10 @@ const schema = defineSchema({
     userId: v.id("users"),
     createdAt: v.optional(v.float64()),
     updatedAt: v.optional(v.float64()),
-  }).index("by_userId", ["userId"]),
+  }).index("by_userId", ["userId"])
+    .index("by_category", ["category"])
+    .index("by_status", ["status"])
+    .index("by_createdAt", ["createdAt"]),
 
   conversations: defineTable({
     participants: v.array(v.string()),
