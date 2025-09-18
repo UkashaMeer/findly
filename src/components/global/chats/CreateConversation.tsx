@@ -22,7 +22,7 @@ export default function CreateConversation({ chatWithUserId }: any) {
     }
 
     return (
-        <Button className="cursor-pointer" onClick={handleCreateConversation}>
+        <Button className="cursor-pointer flex-1" onClick={handleCreateConversation}>
             <MessageCircle size={14} />
             Chat
         </Button>

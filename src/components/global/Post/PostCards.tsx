@@ -6,12 +6,18 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { MapPin, Clock, Tag, Phone, Share2, ExternalLink, Heart, Repeat2, Copy, CheckCircle2 } from 'lucide-react'
+import { MapPin, Clock, Tag, Phone, Share2, ExternalLink, Heart, Repeat2, Copy, CheckCircle2, ThumbsUp, MessageCircleMore } from 'lucide-react'
 import { useState } from 'react'
 import { formatTime } from "@/lib/formatTime"
 import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar"
 import PostCardSelect from "./PostCardSelect"
 import CreateConversation from "../chats/CreateConversation"
+import { Item } from "@/lib/types"
+import { Button } from "@/components/ui/button"
+import PostComments from "./PostComments"
+import { useDispatch, useSelector } from "react-redux"
+import { RootState } from "@/app/redux/store"
+import { toggleShowComments } from "@/app/redux/commentsSlice"
 
 const StatusBadge = ({ status }: { status: string }) => {
     const isLost = status === "Lost"
@@ -27,10 +33,13 @@ const StatusBadge = ({ status }: { status: string }) => {
 }
 
 export function PostCards({ items }: { items: any }) {
+    
+    const dispatch = useDispatch()
+    const comment = useSelector((state: RootState) => state.comment.openComments)
+    
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
-    const [likedItems, setLikedItems] = useState<Record<string, boolean>>({})
     const [showShareMenu, setShowShareMenu] = useState<Record<string, boolean>>({})
-    const [copiedItems, setCopiedItems] = useState<Record<string, boolean>>({})
+    const [liked, setLiked] = useState<boolean>(false)
 
     const toggleExpanded = (itemId: string) => {
         setExpandedItems(prev => ({
@@ -39,64 +48,15 @@ export function PostCards({ items }: { items: any }) {
         }))
     }
 
-    const toggleLike = (itemId: string) => {
-        setLikedItems(prev => ({
-            ...prev,
-            [itemId]: !prev[itemId]
-        }))
-    }
-    const toggleShareMenu = (itemId: string) => {
-        setShowShareMenu(prev => ({
-            ...prev,
-            [itemId]: !prev[itemId]
-        }))
-    }
-
-    const copyToClipboard = async (itemId: string, text: string) => {
-        try {
-            await navigator.clipboard.writeText(text)
-            setCopiedItems(prev => ({ ...prev, [itemId]: true }))
-            setTimeout(() => {
-                setCopiedItems(prev => ({ ...prev, [itemId]: false }))
-            }, 2000)
-        } catch (err) {
-            console.error('Failed to copy:', err)
-        }
-    }
-
-    const sharePost = async (item: any, platform: string) => {
-        const url = `${window.location.origin}/post/${item._id}`
-        const text = `Check out this ${item.status.toLowerCase()} item: ${item.title}`
-
-        switch (platform) {
-            case 'twitter':
-                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank')
-                break
-            case 'facebook':
-                window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')
-                break
-            case 'whatsapp':
-                window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank')
-                break
-            case 'copy':
-                copyToClipboard(item._id, url)
-                break
-        }
-        setShowShareMenu(prev => ({ ...prev, [item._id]: false }))
-    }
-
     return (
         <div className='w-full mx-auto space-y-4'>
-            {items?.map((item, index) => {
-                const combinedText = `${item.description} ${item.location}`
+            {items?.map((item: Item, index: number) => {
+                const combinedText = `${item.description!} ${item.location}`
                 const shouldTruncate = combinedText.length > 100
                 const isExpanded = expandedItems[item._id] || false
-                const isLiked = likedItems[item._id] || false
-                const showShare = showShareMenu[item._id] || false
-                const isCopied = copiedItems[item._id] || false
 
                 return (
-                    <Card key={item._id || index} className="shadow-sm hover:shadow-md transition-shadow duration-200 pb-0">
+                    <Card key={item._id || index} className="shadow-sm gap-2 hover:shadow-md transition-shadow duration-200 pb-0">
                         <CardHeader>
                             <div className='flex items-start justify-between'>
                                 <div className='flex items-center gap-3'>
@@ -124,9 +84,9 @@ export function PostCards({ items }: { items: any }) {
                                         <Tag size={12} />
                                         <span className="text-xs font-medium">{item.category}</span>
                                     </div>
-                                    <StatusBadge status={item.status} />
+                                    <StatusBadge status={item.status!} />
                                     {item.isOwner && (
-                                        <PostCardSelect title={item.title} category={item.category} imageUrl={item.imageUrl} location={item.location} description={item.description} status={item.status} id={item._id} />
+                                        <PostCardSelect title={item.title} category={item.category} imageUrl={item.imageUrl} location={item.location} description={item.description!} status={item.status} id={item._id} />
                                     )}
                                 </div>
                             </div>
@@ -184,70 +144,38 @@ export function PostCards({ items }: { items: any }) {
                             )}
                         </CardContent>
 
-                        <CardFooter className="border-t bg-muted/20 px-6 !py-3">
-                            <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-1.5">
-                                    {
-                                        !item.isOwner && (
-                                            <CreateConversation chatWithUserId={item.user.id} />
-                                        )
-                                    }
-
-                                    <div className="relative">
-                                        <button
-                                            onClick={() => toggleShareMenu(item._id)}
-                                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 border border-border rounded-sm hover:bg-muted transition-colors text-xs text-muted-foreground hover:text-foreground cursor-pointer"
-                                        >
-                                            <Share2 size={14} />
-                                            Share
-                                        </button>
-
-                                        {showShare && (
-                                            <div className="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 border rounded-lg shadow-lg p-2 min-w-[160px] z-50">
-                                                <button
-                                                    onClick={() => sharePost(item, 'twitter')}
-                                                    className="w-full text-left px-3 py-2 text-xs hover:bg-muted rounded flex items-center gap-2"
-                                                >
-                                                    Share on Twitter
-                                                </button>
-                                                <button
-                                                    onClick={() => sharePost(item, 'facebook')}
-                                                    className="w-full text-left px-3 py-2 text-xs hover:bg-muted rounded flex items-center gap-2"
-                                                >
-                                                    Share on Facebook
-                                                </button>
-                                                <button
-                                                    onClick={() => sharePost(item, 'whatsapp')}
-                                                    className="w-full text-left px-3 py-2 text-xs hover:bg-muted rounded flex items-center gap-2"
-                                                >
-                                                    Share on WhatsApp
-                                                </button>
-                                                <button
-                                                    onClick={() => sharePost(item, 'copy')}
-                                                    className="w-full text-left px-3 py-2 text-xs hover:bg-muted rounded flex items-center gap-2"
-                                                >
-                                                    {isCopied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-                                                    {isCopied ? 'Copied!' : 'Copy Link'}
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <button className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30 rounded transition-colors text-xs font-medium cursor-pointer">
-                                        <Repeat2 size={14} />
-                                        Repost
-                                    </button>
-                                </div>
-
-                                <button
-                                    onClick={() => toggleLike(item._id)}
-                                    className={`flex items-center gap-1 transition-colors text-xs cursor-pointer ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+                        <CardFooter className="border-t bg-muted/20 !p-3">
+                            <div className="flex items-center justify-between w-full gap-2">
+                                <Button
+                                    className="inline-flex text-sm !py-0 !px-2 flex-1 cursor-pointer" 
+                                    variant={liked ? "default" : "outline"}
+                                    onClick={() => setLiked((prev) => !prev)}
                                 >
-                                    <Heart size={12} className={isLiked ? 'fill-current' : ''} />
-                                    <span>{isLiked ? 6 : 5}</span>
-                                </button>
+                                    <ThumbsUp size={14} />
+                                    Like
+                                </Button>
+                                <Button
+                                 className="inline-flex text-sm !py-0 !px-2 flex-1 cursor-pointer"
+                                 variant={comment[item._id] ? "default" : "outline"}
+                                 onClick={() => {dispatch(toggleShowComments(item._id))}}
+                                 >
+                                    <MessageCircleMore size={14} />
+                                    Comments
+                                </Button>
+                                <Button className="inline-flex text-sm !py-0 !px-2 flex-1 cursor-pointer" variant="outline">
+                                    <Repeat2 size={14} />
+                                    Repost
+                                </Button>
+                                {
+                                    !item.isOwner && (
+                                        <CreateConversation chatWithUserId={item.user.id} />
+                                    )
+                                }
                             </div>
                         </CardFooter>
+                        {
+                            comment[item._id] &&  <PostComments />
+                        }
                     </Card>
                 )
             })}

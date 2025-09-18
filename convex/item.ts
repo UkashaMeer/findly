@@ -73,27 +73,24 @@ export const getAll = query({
 
     let items = await ctx.db.query("items").order("desc").collect();
 
-    // ✅ search filter
     if (args.search && args.search.trim().length > 0) {
       const search = args.search.toLowerCase();
       items = items.filter((i) => {
         const title = i.title?.toLowerCase() || "";
         const description = i.description?.toLowerCase() || "";
-        return title.includes(search) || description.includes(search);
+        const location = i.location?.toLowerCase() || ""
+        return title.includes(search) || description.includes(search) || location.includes(search);
       });
     }
 
-    // ✅ category filter
     if (args.category && args.category !== "All Posts") {
       items = items.filter((i) => i.category === args.category);
     }
 
-    // ✅ status filter
     if (args.status && args.status !== "all") {
       items = items.filter((i) => i.status === args.status);
     }
 
-    // ✅ time filter (_creationTime instead of createdAt)
     if (args.createdAt && args.createdAt !== "all") {
       const now = Date.now();
       let fromTime = 0;
@@ -113,7 +110,6 @@ export const getAll = query({
       items = items.filter((i) => i._creationTime >= fromTime);
     }
 
-    // ✅ attach user info
     const itemsWithUsers = await Promise.all(
       items.map(async (item) => {
         const user = await ctx.db.get(item.userId);

@@ -34,11 +34,23 @@ const schema = defineSchema({
     .index("by_category", ["category"])
     .index("by_status", ["status"])
     .index("by_createdAt", ["createdAt"]),
-
+    
+  comments: defineTable({
+      postId: v.id("items"),
+      userId: v.id("users"),
+      content: v.string(),
+      parentId: v.optional(v.id("comments")),
+      likes: v.number(),
+      createdAt: v.float64()
+  }).index("by_userId", ["userId"])
+  .index("by_postId", ["postId"])
+  .index("by_parentId", ["parentId"]),
+  
   conversations: defineTable({
     participants: v.array(v.string()),
     createdAt: v.number()
   }),
+
 
   messages: defineTable({
     conversationId: v.id("conversations"),
