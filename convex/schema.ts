@@ -27,6 +27,7 @@ const schema = defineSchema({
       v.literal("Found"),
     ),
     imageId: v.id("_storage"),
+    likes: v.optional(v.array(v.id("users"))),
     userId: v.id("users"),
     createdAt: v.optional(v.float64()),
     updatedAt: v.optional(v.float64()),
@@ -40,7 +41,7 @@ const schema = defineSchema({
       userId: v.id("users"),
       content: v.string(),
       parentId: v.optional(v.id("comments")),
-      likes: v.number(),
+      likes: v.optional(v.array(v.id("users"))),
       createdAt: v.float64()
   }).index("by_userId", ["userId"])
   .index("by_postId", ["postId"])

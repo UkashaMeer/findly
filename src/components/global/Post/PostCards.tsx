@@ -6,7 +6,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { MapPin, Clock, Tag, Phone, Share2, ExternalLink, Heart, Repeat2, Copy, CheckCircle2, ThumbsUp, MessageCircleMore } from 'lucide-react'
+import { MapPin, Clock, Tag, ExternalLink, Repeat2, ThumbsUp, MessageCircleMore } from 'lucide-react'
 import { useState } from 'react'
 import { formatTime } from "@/lib/formatTime"
 import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar"
@@ -18,6 +18,9 @@ import PostComments from "./PostComments"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "@/app/redux/store"
 import { toggleShowComments } from "@/app/redux/commentsSlice"
+import { useMutation } from "convex/react"
+import { api } from "../../../../convex/_generated/api"
+import { toggleLike } from "@/app/redux/likeSlice"
 
 const StatusBadge = ({ status }: { status: string }) => {
     const isLost = status === "Lost"
@@ -33,13 +36,15 @@ const StatusBadge = ({ status }: { status: string }) => {
 }
 
 export function PostCards({ items }: { items: any }) {
-    
+
+    console.log(items)
+    const addLikeToPost = useMutation(api.item.likePost)
+
     const dispatch = useDispatch()
     const comment = useSelector((state: RootState) => state.comment.openComments)
-    
+
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
     const [showShareMenu, setShowShareMenu] = useState<Record<string, boolean>>({})
-    const [liked, setLiked] = useState<boolean>(false)
 
     const toggleExpanded = (itemId: string) => {
         setExpandedItems(prev => ({
@@ -55,9 +60,21 @@ export function PostCards({ items }: { items: any }) {
                 const shouldTruncate = combinedText.length > 100
                 const isExpanded = expandedItems[item._id] || false
 
+                const handleLike = async (itemId: any) => {
+                    try {
+                        await addLikeToPost({
+                            itemId
+                        })
+                        dispatch(toggleLike(itemId))
+                    } catch (err) {
+                        alert(err)
+                    }
+                }
+
+
                 return (
-                    <Card key={item._id || index} className="shadow-sm gap-2 hover:shadow-md transition-shadow duration-200 pb-0">
-                        <CardHeader>
+                    <Card key={item._id || index} className="shadow-sm gap-0 hover:shadow-md transition-shadow duration-200 pb-0">
+                        <CardHeader className="mb-4">
                             <div className='flex items-start justify-between'>
                                 <div className='flex items-center gap-3'>
                                     <Avatar>
@@ -125,7 +142,7 @@ export function PostCards({ items }: { items: any }) {
                             </div>
 
                             {item.imageUrl && (
-                                <div className="relative rounded-md overflow-hidden border bg-muted group">
+                                <div className="relative rounded-md overflow-hidden border bg-muted group mb-4">
                                     <div className="w-full">
                                         <img
                                             src={item.imageUrl}
@@ -142,23 +159,29 @@ export function PostCards({ items }: { items: any }) {
                                     </div>
                                 </div>
                             )}
+                            {item.likes?.length > 0 && (
+                                <span className="text-sm flex items-center gap-1 mb-2">
+                                    <ThumbsUp size={15} />
+                                    {item.likeCount}
+                                </span>
+                            )}
                         </CardContent>
 
                         <CardFooter className="border-t bg-muted/20 !p-3">
                             <div className="flex items-center justify-between w-full gap-2">
                                 <Button
-                                    className="inline-flex text-sm !py-0 !px-2 flex-1 cursor-pointer" 
-                                    variant={liked ? "default" : "outline"}
-                                    onClick={() => setLiked((prev) => !prev)}
+                                    className="inline-flex text-sm !py-0 !px-2 flex-1 cursor-pointer"
+                                    variant={item.likedByUser ? "default" : "outline"}
+                                    onClick={() => handleLike(item._id)}
                                 >
                                     <ThumbsUp size={14} />
                                     Like
                                 </Button>
                                 <Button
-                                 className="inline-flex text-sm !py-0 !px-2 flex-1 cursor-pointer"
-                                 variant={comment[item._id] ? "default" : "outline"}
-                                 onClick={() => {dispatch(toggleShowComments(item._id))}}
-                                 >
+                                    className="inline-flex text-sm !py-0 !px-2 flex-1 cursor-pointer"
+                                    variant={comment[item._id] ? "default" : "outline"}
+                                    onClick={() => { dispatch(toggleShowComments(item._id)) }}
+                                >
                                     <MessageCircleMore size={14} />
                                     Comments
                                 </Button>
@@ -174,7 +197,7 @@ export function PostCards({ items }: { items: any }) {
                             </div>
                         </CardFooter>
                         {
-                            comment[item._id] &&  <PostComments />
+                            comment[item._id] && <PostComments postId={item._id} userImage={item?.user?.image} userName={item?.user?.name} />
                         }
                     </Card>
                 )

@@ -28,6 +28,28 @@ export interface Item {
   createdAt: number
   updatedAt: number
   isOwner: boolean
+  likeCount: number
+  likedByUser: boolean
+  likes: []
+  user: {
+    id: Id<"users">
+    name: string
+    email: string
+    image: string
+    role: "user" | "admin"
+  }
+}
+
+export interface Comment {
+  _id: Id<"comments">
+  _creationTime: number
+  content: string
+  userId: Id<"users">
+  createdAt: number
+  parentId: string | null
+  likes: []
+  likeCount: number
+  likedByUser: boolean
   user: {
     id: Id<"users">
     name: string

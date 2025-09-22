@@ -71,6 +71,10 @@ export const getAll = query({
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthorized User");
 
+    const currentUser = await ctx.db.query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+    .unique()
+
     let items = await ctx.db.query("items").order("desc").collect();
 
     if (args.search && args.search.trim().length > 0) {
@@ -121,14 +125,16 @@ export const getAll = query({
             : null,
           user: user
             ? {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                image: user.image,
-                role: user.role,
-              }
+              id: user._id,
+              name: user.name,
+              email: user.email,
+              image: user.image,
+              role: user.role,
+            }
             : null,
           isOwner: user?.clerkId === identity.subject,
+          likeCount:  item.likes?.length || 0,
+          likedByUser: currentUser ? item.likes?.includes(currentUser._id) ?? false : false
         };
       })
     );
@@ -165,6 +171,7 @@ export const getMine = query({
           ...item,
           createdAt: item._creationTime,
           imageUrl: item.imageId ? await ctx.storage.getUrl(item.imageId) : null,
+          likedByCurrentUser: item.likes?.includes(user._id),
           user: user ? {
             id: user._id,
             name: user.name,
@@ -259,5 +266,44 @@ export const deletePost = mutation({
 
     return { success: true }
 
+  }
+})
+
+export const likePost = mutation({
+  args: {
+    itemId: v.id("items")
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) throw new Error("Unauthorized User");
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!user) throw new Error("User not found");
+
+    const item = await ctx.db.get(args.itemId);
+    if (!item) throw new Error("Item not found");
+
+    const likes = item.likes ?? []
+
+    let updateLikes;
+    if (likes.includes(user._id)){
+      updateLikes = likes.filter((id) => id !== user._id)
+    }else {
+      updateLikes = [...likes, user._id]
+    }
+
+    await ctx.db.patch(args.itemId, {
+      likes: updateLikes,
+    })
+
+    return {
+      likes: updateLikes,
+      likeCount: updateLikes?.length,
+      likedByUser: updateLikes?.includes(user._id)
+    }
   }
 })

@@ -1,9 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Image, Smile, User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '../../../../convex/_generated/api';
+import SomeComments from './SomeComments';
+import { toast } from 'sonner';
 
-const PostComments = () => {
+const PostComments = ({ postId, userImage, userName }: { postId: any, userImage: string, userName: string }) => {
+
+  console.log(userImage)
+
+  const addComment = useMutation(api.comments.create)
+  const comments = useQuery(api.comments.getSomeComments, {
+    postId
+  })
+  console.log(comments)
+
   const [isFocused, setIsFocused] = useState(false);
   const [comment, setComment] = useState('');
   const textareaRef = useRef(null);
@@ -21,11 +33,17 @@ const PostComments = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (comment.trim()) {
-      console.log('Comment submitted:', comment);
+      await addComment({
+        postId,
+        content: comment,
+        likes: [],
+      })
+
+      toast.success("Comment Added")
       setComment('');
-      setIsFocused(false);
+      setIsFocused(false)
     }
   };
 
@@ -56,26 +74,32 @@ const PostComments = () => {
       <div className="flex items-start gap-4">
         <div className="relative">
           <Avatar>
-            <AvatarImage />
-            <AvatarFallback>UK</AvatarFallback>
+            <AvatarImage src={userImage} />
+            <AvatarFallback>
+              {
+                userName.split(' ')
+                  .map(word => word[0])
+                  .join('')
+                  .toUpperCase()
+                  .slice(0, 2)
+              }
+            </AvatarFallback>
           </Avatar>
         </div>
 
         <div className="flex-1">
-          <div 
+          <div
             ref={containerRef}
-            className={`relative border transition-all duration-300 ease-out overflow-hidden ${
-              isFocused 
-                ? 'rounded-md ring-3 ring-primary/50 border-1 border-primary' 
+            className={`relative border transition-all duration-300 ease-out overflow-hidden ${isFocused
+                ? 'rounded-md ring-3 ring-primary/50 border-1 border-primary'
                 : 'rounded-md'
-            }`}
+              }`}
             onClick={handleContainerClick}
           >
-            
-            <div 
-              className={`transition-all duration-300 ease-out ${
-                isFocused ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'
-              }`}
+
+            <div
+              className={`transition-all duration-300 ease-out ${isFocused ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto'
+                }`}
             >
               <input
                 type="text"
@@ -87,18 +111,17 @@ const PostComments = () => {
                 tabIndex={isFocused ? -1 : 0}
               />
             </div>
-            
-            <div 
-              className={`transition-all duration-300 ease-out ${
-                isFocused ? 'opacity-100 h-auto' : 'opacity-0 h-0 overflow-hidden'
-              }`}
+
+            <div
+              className={`transition-all duration-300 ease-out ${isFocused ? 'opacity-100 h-auto' : 'opacity-0 h-0 overflow-hidden'
+                }`}
             >
               <div className="p-3 flex flex-col">
                 <textarea
                   ref={textareaRef}
                   placeholder="Add a comment..."
                   className="w-full min-h-[80px] resize-none focus:outline-none bg-transparent placeholder:text-opacity-70"
-                  style={{ 
+                  style={{
                     color: 'hsl(var(--foreground))'
                   }}
                   value={comment}
@@ -107,25 +130,26 @@ const PostComments = () => {
                   onKeyDown={handleKeyDown}
                   rows={3}
                 />
-                
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={!comment.trim()}
-                    className={`self-end cursor-pointer ${
-                      comment.trim()
-                        ? 'shadow-sm hover:shadow-md'
-                        : 'cursor-not-allowed opacity-50'
+
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!comment.trim()}
+                  className={`self-end cursor-pointer ${comment.trim()
+                      ? 'shadow-sm hover:shadow-md'
+                      : 'cursor-not-allowed opacity-50'
                     }`}
-                  >
-                    Comment
-                  </Button>
-                </div>
+                >
+                  Comment
+                </Button>
               </div>
             </div>
           </div>
+        </div>
       </div>
 
-      
+      <SomeComments comments={comments} postId={postId} />
+
+
     </div>
   );
 };
