@@ -5,7 +5,7 @@ const schema = defineSchema({
   users: defineTable({
     name: v.string(),
     email: v.string(),
-    role: v.string(),
+    role: v.union(v.literal("user"), v.literal("admin")),
     image: v.string(),
     clerkId: v.string(),
     createdAt: v.number(),
@@ -42,7 +42,8 @@ const schema = defineSchema({
       content: v.string(),
       parentId: v.optional(v.id("comments")),
       likes: v.optional(v.array(v.id("users"))),
-      createdAt: v.float64()
+      createdAt: v.float64(),
+      depth: v.optional(v.number())
   }).index("by_userId", ["userId"])
   .index("by_postId", ["postId"])
   .index("by_parentId", ["parentId"]),

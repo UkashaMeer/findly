@@ -9,6 +9,7 @@ export const create = mutation({
         content: v.string(),
         likes: v.optional(v.array(v.id("users"))),
         parentId: v.optional(v.id("comments")),
+        depth: v.optional(v.number())
     },
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity()
@@ -22,8 +23,13 @@ export const create = mutation({
         if (!user) throw new Error("User not found.")
 
         const items = await ctx.db.get(args.postId)
-
         if (!items) throw new Error("Item not found.")
+
+        let depth = 0
+        if (args.parentId) {
+            const parentComment = await ctx.db.get(args.parentId)
+            depth = (parentComment?.depth || 0) + 1
+        }
 
         return await ctx.db.insert("comments", {
             postId: args.postId,
@@ -31,9 +37,69 @@ export const create = mutation({
             parentId: args.parentId,
             content: args.content,
             likes: args.likes,
+            depth: depth,
             createdAt: Date.now()
         })
     },
+})
+
+export const getCommentsByParent = query({
+    args: {
+        parentId: v.optional(v.id("comments")),
+        postId: v.id("items"),
+        topLevel: v.optional(v.boolean())
+    },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity()
+        if (!identity) throw new Error("Unauthorized User.")
+
+        const currentUser = await ctx.db.query("users")
+            .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+            .unique()
+
+        let comments;
+        if (args.topLevel) {
+            comments = await ctx.db.query("comments")
+                .withIndex("by_postId", (q) => q.eq("postId", args.postId!))
+                .filter(q => q.eq(q.field("parentId"), undefined))
+                .order("desc")
+                .collect()
+        } else {
+            comments = await ctx.db.query("comments")
+                .withIndex("by_parentId", (q) => q.eq("parentId", args.parentId!))
+                .order("asc")
+                .collect()
+        }
+
+        const commentsWithData = await Promise.all(
+            comments.map(async (comment) => {
+                const user = await ctx.db.get(comment.userId)
+                const replyCount = await ctx.db.query("comments")
+                    .withIndex("by_parentId", (q) => q.eq("parentId", comment._id))
+                    .collect()
+
+                return {
+                    ...comment,
+                    user: user ? {
+                        id: user._id,
+                        name: user.name,
+                        email: user.email,
+                        image: user.image,
+                        role: user.role,
+                    } : null,
+                    likeCount: comment.likes?.length || 0,
+                    likedByUser: currentUser ? comment.likes?.includes(currentUser._id) ?? false : false,
+                    replyCount: replyCount.length,
+                    currentUser: currentUser,
+                    depth: comment.depth ?? 0,
+                    
+                };
+            })
+        )
+
+        return commentsWithData
+
+    }
 })
 
 export const getSomeComments = query({
@@ -155,15 +221,15 @@ export const getReplies = query({
         if (!identity) throw new Error("Unauthorized User")
 
         const currentUser = await ctx.db.query("users")
-        .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-        .unique()
+            .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+            .unique()
 
         if (!currentUser) throw new Error("Current User Not Found")
 
         const replies = await ctx.db.query("comments")
-        .withIndex("by_parentId", (q) => q.eq("parentId", args.parentId))
-        .order("asc")
-        .take(5)
+            .withIndex("by_parentId", (q) => q.eq("parentId", args.parentId))
+            .order("asc")
+            .take(5)
 
         const repliesWithUser = Promise.all(
             replies.map(async (reply) => {

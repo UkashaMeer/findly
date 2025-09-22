@@ -2,34 +2,40 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useRef, useState } from "react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 
-export default function ReplyComment({ userImage, parentId, postId }: { userImage: string, parentId: any, postId: any }) {
+interface ReplyCommentProps {
+    userImage: string;
+    parentId: any;
+    postId: any;
+    onSuccess?: () => void;
+}
+
+export default function ReplyComment({ userImage, parentId, postId, onSuccess }: ReplyCommentProps) {
 
     const replyComment = useMutation(api.comments.replyComment)
-    const comments = useQuery(api.comments.getSomeComments, {
-        postId
-    })
-
     const [isFocused, setIsFocused] = useState(false);
     const [comment, setComment] = useState('');
     const textareaRef = useRef(null);
     const containerRef = useRef(null);
 
     const handleSubmit = async () => {
-        try {
-            await replyComment({
-                content: comment,
-                likes: [],
-                postId,
-                parentId,
-            })
-            setComment("")
-            setIsFocused(false)
-        } catch (err) {
-            alert(err)
+        if (comment.trim()) {
+            try {
+                await replyComment({
+                    postId,
+                    content: comment,
+                    likes: [],
+                    parentId,
+                });
+                setComment("");
+                setIsFocused(false);
+                onSuccess?.();
+            } catch (err) {
+                console.error(err);
+            }
         }
-    }
+    };
 
     const handleFocus = () => {
         setIsFocused(true);

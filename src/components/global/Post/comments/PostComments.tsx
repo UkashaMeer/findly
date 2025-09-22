@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useMutation, useQuery } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
-import SomeComments from './SomeComments';
+import { api } from '../../../../../convex/_generated/api';
 import { toast } from 'sonner';
+import CommentsRecursive from './CommentsRecursive';
 
 const PostComments = ({ postId, userImage, userName }: { postId: any, userImage: string, userName: string }) => {
 
@@ -21,6 +21,24 @@ const PostComments = ({ postId, userImage, userName }: { postId: any, userImage:
   const textareaRef = useRef(null);
   const containerRef = useRef(null);
 
+  const handleSubmit = async () => {
+    if (comment.trim()) {
+      try {
+        await addComment({
+          postId,
+          content: comment,
+          likes: [],
+        });
+        toast.success("Comment Added");
+        setComment('');
+        setIsFocused(false);
+      } catch (error) {
+        toast.error("Failed to add comment");
+      }
+    }
+  };
+
+
   const handleFocus = () => {
     setIsFocused(true);
   };
@@ -30,20 +48,6 @@ const PostComments = ({ postId, userImage, userName }: { postId: any, userImage:
       if (!comment.trim()) {
         setIsFocused(false);
       }
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (comment.trim()) {
-      await addComment({
-        postId,
-        content: comment,
-        likes: [],
-      })
-
-      toast.success("Comment Added")
-      setComment('');
-      setIsFocused(false)
     }
   };
 
@@ -70,7 +74,7 @@ const PostComments = ({ postId, userImage, userName }: { postId: any, userImage:
   }, [isFocused]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4 pt-0" style={{ fontFamily: 'var(--font-sans)' }}>
+    <div className="w-full max-w-2xl mx-auto p-4 pt-0 bg-muted/20">
       <div className="flex items-start gap-4">
         <div className="relative">
           <Avatar>
@@ -91,8 +95,8 @@ const PostComments = ({ postId, userImage, userName }: { postId: any, userImage:
           <div
             ref={containerRef}
             className={`relative border transition-all duration-300 ease-out overflow-hidden ${isFocused
-                ? 'rounded-md ring-3 ring-primary/50 border-1 border-primary'
-                : 'rounded-md'
+              ? 'rounded-md ring-3 ring-primary/50 border-1 border-primary'
+              : 'rounded-md'
               }`}
             onClick={handleContainerClick}
           >
@@ -135,8 +139,8 @@ const PostComments = ({ postId, userImage, userName }: { postId: any, userImage:
                   onClick={handleSubmit}
                   disabled={!comment.trim()}
                   className={`self-end cursor-pointer ${comment.trim()
-                      ? 'shadow-sm hover:shadow-md'
-                      : 'cursor-not-allowed opacity-50'
+                    ? 'shadow-sm hover:shadow-md'
+                    : 'cursor-not-allowed opacity-50'
                     }`}
                 >
                   Comment
@@ -147,7 +151,9 @@ const PostComments = ({ postId, userImage, userName }: { postId: any, userImage:
         </div>
       </div>
 
-      <SomeComments comments={comments} postId={postId} />
+      <div className="mt-4">
+        <CommentsRecursive postId={postId} depth={0} maxDepth={0}  />
+      </div>
 
 
     </div>
