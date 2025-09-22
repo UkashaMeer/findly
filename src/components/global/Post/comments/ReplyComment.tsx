@@ -16,8 +16,8 @@ export default function ReplyComment({ userImage, parentId, postId, onSuccess }:
     const replyComment = useMutation(api.comments.replyComment)
     const [isFocused, setIsFocused] = useState(false);
     const [comment, setComment] = useState('');
-    const textareaRef = useRef(null);
-    const containerRef = useRef(null);
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
     const handleSubmit = async () => {
         if (comment.trim()) {
