@@ -159,12 +159,19 @@ export function PostCards({ items }: { items: any }) {
                                     </div>
                                 </div>
                             )}
+                            <div className="flex items-center justify-between">
                             {item.likes?.length > 0 && (
                                 <span className="text-sm flex items-center gap-1 mb-2">
-                                    <ThumbsUp size={15} />
+                                    <ThumbsUp size={14} />
                                     {item.likeCount}
                                 </span>
                             )}
+                            {item.numberOfComments > 0 && (
+                                <span className="text-sm flex items-center gap-1 mb-2">
+                                    {item.numberOfComments} comments
+                                </span>
+                            )}
+                            </div>
                         </CardContent>
 
                         <CardFooter className="border-t bg-muted/20 !p-3">

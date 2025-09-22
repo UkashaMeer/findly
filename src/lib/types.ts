@@ -30,6 +30,7 @@ export interface Item {
   isOwner: boolean
   likeCount: number
   likedByUser: boolean
+  numberOfComments: number
   likes: []
   user: {
     id: Id<"users">

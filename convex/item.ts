@@ -117,6 +117,9 @@ export const getAll = query({
     const itemsWithUsers = await Promise.all(
       items.map(async (item) => {
         const user = await ctx.db.get(item.userId);
+        const comments = await ctx.db.query("comments")
+        .withIndex("by_postId", (q) => q.eq("postId", item._id))
+        .collect()
         return {
           ...item,
           createdAt: item._creationTime,
@@ -134,7 +137,8 @@ export const getAll = query({
             : null,
           isOwner: user?.clerkId === identity.subject,
           likeCount:  item.likes?.length || 0,
-          likedByUser: currentUser ? item.likes?.includes(currentUser._id) ?? false : false
+          likedByUser: currentUser ? item.likes?.includes(currentUser._id) ?? false : false,
+          numberOfComments: comments?.length || 0
         };
       })
     );

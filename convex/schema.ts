@@ -28,6 +28,7 @@ const schema = defineSchema({
     ),
     imageId: v.id("_storage"),
     likes: v.optional(v.array(v.id("users"))),
+    comments: v.optional(v.array(v.id("users"))),
     userId: v.id("users"),
     createdAt: v.optional(v.float64()),
     updatedAt: v.optional(v.float64()),
