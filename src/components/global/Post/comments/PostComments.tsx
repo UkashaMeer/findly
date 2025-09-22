@@ -11,11 +11,6 @@ const PostComments = ({ postId, userImage, userName }: { postId: any, userImage:
   console.log(userImage)
 
   const addComment = useMutation(api.comments.create)
-  const comments = useQuery(api.comments.getSomeComments, {
-    postId
-  })
-  console.log(comments)
-
   const [isFocused, setIsFocused] = useState(false);
   const [comment, setComment] = useState('');
   const textareaRef = useRef(null);

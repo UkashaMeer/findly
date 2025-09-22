@@ -102,49 +102,6 @@ export const getCommentsByParent = query({
     }
 })
 
-export const getSomeComments = query({
-    args: {
-        postId: v.id("items"),
-    },
-    handler: async (ctx, args) => {
-        const identity = await ctx.auth.getUserIdentity()
-        if (!identity) throw new Error("Unauthorized User")
-
-        const currentUser = await ctx.db.query("users")
-            .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-            .unique()
-
-        const comments = await ctx.db.query("comments")
-            .withIndex("by_postId", (q) => q.eq("postId", args.postId))
-            .filter(q => q.eq(q.field("parentId"), undefined))
-            .order("desc")
-            .take(5)
-
-
-        if (!comments) throw new Error("No Comment Found.")
-
-        const commentsWithUser = Promise.all(
-            comments.map(async (comment) => {
-                const user = await ctx.db.get(comment.userId)
-                return {
-                    ...comment,
-                    user: user ? {
-                        id: user._id,
-                        name: user.name,
-                        email: user.email,
-                        image: user.image,
-                        role: user.role,
-                    } : null,
-                    likeCount: comment.likes?.length || 0,
-                    likedByUser: currentUser ? comment.likes?.includes(currentUser._id) ?? false : false
-                }
-            })
-        )
-
-        return commentsWithUser
-    }
-})
-
 export const likeComment = mutation({
     args: {
         commentId: v.id("comments")
@@ -209,47 +166,5 @@ export const replyComment = mutation({
             likes: args.likes,
             createdAt: Date.now()
         })
-    }
-})
-
-export const getReplies = query({
-    args: {
-        parentId: v.id("comments")
-    },
-    handler: async (ctx, args) => {
-        const identity = await ctx.auth.getUserIdentity()
-        if (!identity) throw new Error("Unauthorized User")
-
-        const currentUser = await ctx.db.query("users")
-            .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-            .unique()
-
-        if (!currentUser) throw new Error("Current User Not Found")
-
-        const replies = await ctx.db.query("comments")
-            .withIndex("by_parentId", (q) => q.eq("parentId", args.parentId))
-            .order("asc")
-            .take(5)
-
-        const repliesWithUser = Promise.all(
-            replies.map(async (reply) => {
-                const user = await ctx.db.get(reply.userId)
-                return {
-                    ...reply,
-                    user: user ? {
-                        id: user._id,
-                        name: user.name,
-                        email: user.email,
-                        image: user.image,
-                        role: user.role,
-                    } : null,
-                    likeCount: reply.likes?.length || 0,
-                    likedByUser: currentUser ? reply.likes?.includes(currentUser._id) ?? false : false
-                }
-            })
-        )
-
-        return repliesWithUser
-
     }
 })
