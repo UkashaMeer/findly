@@ -11,7 +11,7 @@ export default function Home() {
   const { user, isLoaded, isSignedIn } = useUser();
   const router = useRouter();
   const saveUser = useMutation(api.user.saveUser);
-  const currentUser = useQuery(api.user.getCurrentUser);
+  const currentUser = useQuery(api.user.getCurrentUser,   isSignedIn && isLoaded ? {} : "skip");
 
   useEffect(() => {
     if (isLoaded && user && isSignedIn) {

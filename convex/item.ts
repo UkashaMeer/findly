@@ -148,42 +148,50 @@ export const getAll = query({
 });
 
 
-export const getMine = query({
-  args: {},
-  handler: async (ctx) => {
+export const getPostByUserId = query({
+  args: {
+    userId: v.id("users")
+  },
+  handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
     if (!identity) {
       throw new Error("Unauthorized User");
     }
+    
+    const user = await ctx.db.query("users")
+    .withIndex("by_id", (q) => q.eq("_id", args.userId))
+    .unique()
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-
-    if (!user) throw new Error("User not Found")
+    if(!user) throw new Error("User not found.")
 
     const items = await ctx.db.query("items")
       .withIndex("by_userId", (q) => q.eq("userId", user?._id))
       .order("desc")
       .collect()
+    
 
     const itemsWithUsers = await Promise.all(
       items.map(async (item) => {
+        const comments = await ctx.db.query("comments")
+        .withIndex("by_postId", (q) => q.eq("postId", item._id))
+        .collect()
         return {
           ...item,
           createdAt: item._creationTime,
           imageUrl: item.imageId ? await ctx.storage.getUrl(item.imageId) : null,
-          likedByCurrentUser: item.likes?.includes(user._id),
+          likedByCurrentUser: item.likes?.includes(user?._id),
           user: user ? {
-            id: user._id,
+            id: user?._id,
             name: user.name,
             email: user.email,
             image: user.image,
             role: user.role,
           } : null,
-          isOwner: true
+          isOwner: true,
+          likeCount:  item.likes?.length || 0,
+          likedByUser: user ? item.likes?.includes(user._id) ?? false : false,
+          numberOfComments: comments?.length || 0
         }
       })
     )

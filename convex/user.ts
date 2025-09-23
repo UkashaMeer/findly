@@ -16,6 +16,36 @@ export const getCurrentUser = query({
   }
 })
 
+export const getUserById = query({
+  args: {
+    userId: v.id("users")
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+
+    if (!identity) throw new Error("Unauthorized User.")
+    
+    return ctx.db.query("users")
+    .withIndex("by_id", (q) => q.eq("_id", args.userId))
+    .unique()
+  }
+})
+
+export const getSomeUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) throw new Error("Unauthorized User.")
+      
+    const allUsers = await ctx.db.query("users").filter((q) => q.neq(q.field("clerkId"), identity.subject)).collect()
+
+    const shuffled = allUsers.sort(() => .5 - Math.random())
+
+    const count = Math.floor((Math.random() * 2) + 3)
+    return shuffled.slice(0, count)
+  }
+})
+
 export const updateUserName = mutation({
   args: {
     name: v.string()
@@ -68,3 +98,4 @@ export const saveUser = mutation({
     }
   },
 });
+

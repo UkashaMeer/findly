@@ -21,6 +21,7 @@ import { toggleShowComments } from "@/app/redux/commentsSlice"
 import { useMutation } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import { toggleLike } from "@/app/redux/likeSlice"
+import { useRouter } from "next/navigation"
 
 const StatusBadge = ({ status }: { status: string }) => {
     const isLost = status === "Lost"
@@ -37,7 +38,6 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 export function PostCards({ items }: { items: any }) {
 
-    console.log(items)
     const addLikeToPost = useMutation(api.item.likePost)
 
     const dispatch = useDispatch()
@@ -45,6 +45,7 @@ export function PostCards({ items }: { items: any }) {
 
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
     const [showShareMenu, setShowShareMenu] = useState<Record<string, boolean>>({})
+    const router = useRouter()
 
     const toggleExpanded = (itemId: string) => {
         setExpandedItems(prev => ({
@@ -71,12 +72,21 @@ export function PostCards({ items }: { items: any }) {
                     }
                 }
 
+                const handleProfileClick = () => {
+                    if(item.userId){
+                        router.replace(`/user/profile?userId=${item.userId}`)
+                    }
+                }
+
 
                 return (
                     <Card key={item._id || index} className="shadow-sm gap-0 hover:shadow-md transition-shadow duration-200 pb-0">
                         <CardHeader className="mb-4">
                             <div className='flex items-start justify-between'>
-                                <div className='flex items-center gap-3'>
+                                <div 
+                                    className='flex items-center gap-3 cursor-pointer'
+                                    onClick={handleProfileClick}
+                                >
                                     <Avatar>
                                         <AvatarImage src={item.user?.image} alt={item.user?.name} />
                                         <AvatarFallback>{item.user?.name.split(' ')
@@ -167,7 +177,10 @@ export function PostCards({ items }: { items: any }) {
                                 </span>
                             )}
                             {item.numberOfComments > 0 && (
-                                <span className="text-sm flex items-center gap-1 mb-2">
+                                <span 
+                                    className="text-sm flex items-center gap-1 mb-2 cursor-pointer hover:text-primary hover:underline"
+                                    onClick={() => { dispatch(toggleShowComments(item._id))}}
+                                >
                                     {item.numberOfComments} comments
                                 </span>
                             )}

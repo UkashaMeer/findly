@@ -10,8 +10,10 @@ import { api } from "../../../../convex/_generated/api"
 import { User } from "@/lib/types"
 import { Id } from "../../../../convex/_generated/dataModel"
 import { useSearchParams } from "next/navigation"
+import { useUser } from "@clerk/nextjs"
 
 export default function WhatsAppLayout() {
+  const {isSignedIn, isLoaded} = useUser()
   const searchParams = useSearchParams()
   const initialConversationId = searchParams.get("conversationId") as Id<"conversations"> | null
 
@@ -19,10 +21,10 @@ export default function WhatsAppLayout() {
   const [conversationId, setConversationId] = useState<Id<"conversations"> | null>(initialConversationId)
   const [message, setMessage] = useState("")
 
-  const conversations = useQuery(api.conversation.getUserAllConversations)
+  const conversations = useQuery(api.conversation.getUserAllConversations, isSignedIn && isLoaded ? {} : "skip")
   const currentUser = useQuery(api.user.getCurrentUser)
   const sendMessage = useMutation(api.message.sendMessage)
-  const messages = useQuery(api.message.getMessages, conversationId ? {
+  const messages = useQuery(api.message.getMessages, isSignedIn && isLoaded && conversationId ? {
     conversationId
   } : "skip")
 

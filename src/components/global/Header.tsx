@@ -3,12 +3,12 @@
 import { BellDotIcon, MessageCircle, Plus } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { UserButton } from "@clerk/nextjs";
 import { useState } from "react";
 import CreatePost from "./Post/createPost";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/redux/store";
 import { setSearch } from "@/app/redux/searchSlice";
+import UserButton from "./UserButton";
 
 export default function Header() {
     const [open, setOpen] = useState(false)
@@ -29,7 +29,7 @@ export default function Header() {
                 <div className="flex items-center gap-6">
                     <BellDotIcon size={20} />
                     <MessageCircle size={20} />
-                    <UserButton afterSignOutUrl="/sign-in" />
+                    <UserButton />
                 </div>
             </div>
             <CreatePost open={open} setOpen={setOpen} />

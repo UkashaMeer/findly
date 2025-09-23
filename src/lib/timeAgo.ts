@@ -22,3 +22,4 @@ export function timeAgo(timestamp: number): string {
   if (months < 12) return `${months}m`;
   return `${years} y`;
 }
+

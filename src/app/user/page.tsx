@@ -20,29 +20,25 @@ import { useSelector } from "react-redux"
 import { RootState } from "../redux/store"
 import { createdAt, filterCategories, filterStatus } from "@/lib/constants"
 
-
-
 function User() {
 
   const search = useSelector((state: RootState) => state.search.value)
-
   const [openNamePopup, setOpenNamePopup] = useState<boolean>(false)
   const [userName, setUserName] = useState<string>("")
   const [category, setCategory] = useState<string>("All Posts")
   const [status, setStatus] = useState<string>("all")
   const [timeFilter, setTimeFilter] = useState<string>("all")
+  const { isSignedIn, isLoaded } = useUser()
 
-
-  const user = useQuery(api.user.getCurrentUser)
+  const user = useQuery(api.user.getCurrentUser, isSignedIn && isLoaded ? {} : "skip")
   const updateUser = useMutation(api.user.updateUserName)
-  const items = useQuery(api.item.getAll, {
+  const items = useQuery(api.item.getAll, isSignedIn && isLoaded ? {
     category: category === "All Posts" ? "All Posts" : category,
     status: status === "all" ? "all" : status,
     createdAt: timeFilter === "all" ? undefined : timeFilter,
     search,
-  })
+  } : "skip")
   console.log(search)
-  const { isSignedIn } = useUser()
   const router = useRouter()
 
   useEffect(() => {

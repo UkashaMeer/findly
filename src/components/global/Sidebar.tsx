@@ -1,4 +1,4 @@
-import { BellDotIcon, Home, MessageCircle, Settings, StickyNote } from "lucide-react"
+import { BellDotIcon, Home, LogOut, MessageCircle, Settings, StickyNote } from "lucide-react"
 
 import {
   Sidebar,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sidebar"
 import Image from "next/image"
 import Link from "next/link"
+import { SignOutButton } from "@clerk/nextjs"
 
 const items = [
   {
@@ -18,11 +19,11 @@ const items = [
     url: "/user",
     icon: Home,
   },
-  {
-    title: " My Posts",
-    url: "/user/posts",
-    icon: StickyNote,
-  },
+  // {
+  //   title: " My Posts",
+  //   url: "/user/posts",
+  //   icon: StickyNote,
+  // },
   {
     title: "Messages",
     url: "/user/messages",
@@ -43,7 +44,7 @@ const items = [
 export function AppSidebar() {
   return (
     <Sidebar collapsible="offcanvas">
-      <SidebarContent>
+      <SidebarContent className="flex flex-col justify-between mb-8">
         <SidebarGroup>
           <div className="cursor-pointer">
             <Image src="/logo.png" width={110} height={110} alt="" />
@@ -60,6 +61,22 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu className="mt-4">
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <div className="cursor-pointer">
+                    <LogOut />
+                    <SignOutButton redirectUrl="/sign-in">
+                            Sign Out
+                    </SignOutButton>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
