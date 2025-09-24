@@ -11,6 +11,11 @@ export interface User {
   name: string
   email: string
   image: string
+  dateOfBirth: number
+  tagline: string
+  address: string
+  phoneNumber: string
+  about: string
   role: "user" | "admin" | (string & {})
 }
 

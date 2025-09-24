@@ -10,6 +10,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.clerk.dev",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+      },
     ],
   },
 };

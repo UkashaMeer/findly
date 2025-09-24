@@ -10,6 +10,15 @@ const schema = defineSchema({
     clerkId: v.string(),
     createdAt: v.number(),
     updatedAt: v.number(),
+    dateOfBirth: v.optional(v.number()),
+    tagline: v.optional(v.string()),
+    address: v.optional(v.string()),
+    phoneNumber: v.optional(v.string()),
+    followers: v.optional(v.array(v.id("users"))),
+    following: v.optional(v.array(v.id("users"))),
+    trustPoints: v.optional(v.array(v.id("users"))),
+    reports: v.optional(v.array(v.id("users"))),
+    about: v.optional(v.string())
   }).index("by_clerk_id", ["clerkId"]),
 
   items: defineTable({
