@@ -15,7 +15,6 @@ export default function EditProfileDialog({ openEditProfileDialog, setOpenEditPr
 
     const editUser = useMutation(api.user.editUser)
     const generateUploadUrl = useMutation(api.user.generateUploadUrl)
-
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [fileImage, setFileImage] = useState<File | null>(null)

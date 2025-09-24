@@ -26,7 +26,8 @@ export const getCurrentUser = query({
         const imageUrl = await ctx.storage.getUrl(user.image as any);
         return {
           ...user,
-          image: imageUrl || user.image
+          image: imageUrl || user.image,
+          followers: user.followers?.length
         }
       } catch (error) {
         console.error("Failed to get storage URL:", error);
@@ -56,7 +57,8 @@ export const getUserById = query({
         const imageUrl = await ctx.storage.getUrl(user.image as any);
         return {
           ...user,
-          image: imageUrl || user.image
+          image: imageUrl || user.image,
+          followers: user.followers?.length
         }
       } catch (error) {
         console.error("Failed to get storage URL:", error);
@@ -83,7 +85,8 @@ export const getSomeUser = query({
             const imageUrl = await ctx.storage.getUrl(user.image as any);
             return {
               ...user,
-              image: imageUrl || user.image
+              image: imageUrl || user.image,
+              followers: user.followers?.length
             }
           } catch (error) {
             console.error("Failed to get storage URL:", error);
@@ -190,6 +193,37 @@ export const editUser = mutation({
       phoneNumber: args.phoneNumber,
       about: args.about,
       updatedAt: Date.now()
+    })
+  }
+})
+
+export const followUser = mutation({
+  args: {
+    userId: v.id("users")
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) throw new Error("Unauthorized User.")
+
+    const currentUser = await ctx.db.query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+    .unique()
+    if (!currentUser) throw new Error("Current User not found")
+
+    const user = await ctx.db.get(args.userId)
+    if (!user) throw new Error("User Not Found")
+
+    const followers = user?.followers ?? []
+
+    let updateFollowers;
+    if (followers.includes(currentUser._id)) {
+      updateFollowers = followers.filter((id) => id !== currentUser._id) 
+    } else {
+      updateFollowers = [...followers, currentUser._id]
+    }
+
+    await ctx.db.patch(args.userId, {
+      followers: updateFollowers
     })
   }
 })

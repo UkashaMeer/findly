@@ -5,12 +5,31 @@ import ProfileContactInfoDialog from './ProfileContactInfoDialog'
 import { Button } from '@/components/ui/button'
 import CreateConversation from '../chats/CreateConversation'
 import EditProfileDialog from './EditProfileDialog'
+import { useMutation } from 'convex/react'
+import { api } from '../../../../convex/_generated/api'
+import { toast } from 'sonner'
 
 export default function ProfileMainPart({ user, userId, currentUser }: { user: any, userId: any, currentUser: any }) {
+    
+    const followUser = useMutation(api.user.followUser)
+    console.log(userId)
     const [openContactInfo, setOpenContactInfo] = useState(false)
     const [openEditProfileDialog, setOpenEditProfileDialog] = useState(false)
     const [followed, setFollowed] = useState(false)
     const [reported, setReported] = useState(false)
+
+    const handleFollowUser = async () => {
+        try {
+            await followUser({
+                userId
+            })
+            setFollowed((prev) => !prev)
+            toast.success("Followed Successfully")
+        }catch (err) {
+            alert(err)
+        } 
+    }
+
     return (
         <div className='bg-white shadow-xs w-full rounded-md border-border border-1 overflow-hidden relative'>
             <img src="/profile-bg.jpg" className='w-full h-40 object-cover' alt="" />
@@ -41,7 +60,7 @@ export default function ProfileMainPart({ user, userId, currentUser }: { user: a
                             />
                         </div>
                         <div className='flex items-center gap-2 text-sm text-foreground/70'>
-                            <p><span className='font-medium text-foreground/90'>12700+</span> Followers</p>
+                            <p><span className='font-medium text-foreground/90'>{user?.followers}</span> Followers</p>
                             <span className='mt-[-9px]'>.</span>
                             <p><span className='font-medium text-foreground/90'>40+</span> Following</p>
                             <span className='mt-[-9px]'>.</span>
@@ -52,7 +71,7 @@ export default function ProfileMainPart({ user, userId, currentUser }: { user: a
                                 <div className='flex items-center gap-2 mt-2'>
                                     <Button
                                         variant={followed ? "default" : "outline"}
-                                        onClick={() => setFollowed(prev => !prev)}
+                                        onClick={handleFollowUser}
                                         className='flex-1'
                                     >
                                         {followed ? "Followed" : "Follow"}
