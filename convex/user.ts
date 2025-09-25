@@ -27,15 +27,18 @@ export const getCurrentUser = query({
         return {
           ...user,
           image: imageUrl || user.image,
-          followers: user.followers?.length
         }
       } catch (error) {
         console.error("Failed to get storage URL:", error);
-        return user;
+        return {
+          ...user
+        }
       }
     }
 
-    return user
+    return {
+      ...user
+    }
   }
 })
 
@@ -58,15 +61,19 @@ export const getUserById = query({
         return {
           ...user,
           image: imageUrl || user.image,
-          followers: user.followers?.length
+
         }
       } catch (error) {
         console.error("Failed to get storage URL:", error);
-        return user;
+        return {
+          ...user
+        }
       }
     }
 
-    return user
+    return {
+      ...user
+    }
   }
 })
 
@@ -86,14 +93,17 @@ export const getSomeUser = query({
             return {
               ...user,
               image: imageUrl || user.image,
-              followers: user.followers?.length
             }
           } catch (error) {
             console.error("Failed to get storage URL:", error);
-            return user;
+            return {
+              ...user
+            }
           }
         }
-        return user
+        return {
+          ...user
+        }
       })
     )
 
@@ -106,9 +116,10 @@ export const getSomeUser = query({
 export const generateUploadUrl = mutation(async (ctx) => {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
-  
+
   return await ctx.storage.generateUploadUrl();
 });
+
 
 export const updateUserName = mutation({
   args: {
@@ -206,24 +217,93 @@ export const followUser = mutation({
     if (!identity) throw new Error("Unauthorized User.")
 
     const currentUser = await ctx.db.query("users")
-    .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-    .unique()
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .unique()
     if (!currentUser) throw new Error("Current User not found")
 
     const user = await ctx.db.get(args.userId)
     if (!user) throw new Error("User Not Found")
 
     const followers = user?.followers ?? []
+    const following = currentUser?.following ?? []
 
     let updateFollowers;
+    let updateFollowing;
     if (followers.includes(currentUser._id)) {
-      updateFollowers = followers.filter((id) => id !== currentUser._id) 
+      updateFollowers = followers.filter((id) => id !== currentUser._id)
+      updateFollowing = following.filter((id) => id !== user._id)
     } else {
       updateFollowers = [...followers, currentUser._id]
+      updateFollowing = [...following, user._id]
     }
 
     await ctx.db.patch(args.userId, {
-      followers: updateFollowers
+      followers: updateFollowers,
     })
+
+    await ctx.db.patch(currentUser._id, {
+      following: updateFollowing
+    })
+  }
+})
+
+export const getAllFollowers = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) throw new Error("Unauthorized User.")
+
+    const user = await ctx.db.get(args.userId)
+    if (!user) throw new Error("User not found.")
+
+    const followers = user?.followers ?? []
+
+    const followersUsers = await Promise.all(
+      followers?.map(async (follower) => {
+        const user = await ctx.db.get(follower)
+        if (user?.image && isStorageId(user?.image)) {
+          const imageUrl = await ctx.storage.getUrl(user?.image as any);
+          return {
+            ...user,
+            image: imageUrl || user?.image
+          }
+        }
+        else {
+          return user
+        }
+      })
+    )
+
+    return followersUsers
+  }
+})
+
+export const getAllFollowing = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) throw new Error("Unauthorized User.")
+
+    const user = await ctx.db.get(args.userId)
+    if (!user) throw new Error("User not found.")
+
+    const followings = user?.following ?? []
+
+    const followingWithUsers = await Promise.all(
+      followings?.map(async (following) => {
+        const user = await ctx.db.get(following)
+        if (user?.image && isStorageId(user?.image)) {
+          const imageUrl = await ctx.storage.getUrl(user?.image as any);
+          return {
+            ...user,
+            image: imageUrl || user?.image
+          }
+        }
+        else {
+          return user
+        }
+      })
+    )
+    return followingWithUsers
   }
 })

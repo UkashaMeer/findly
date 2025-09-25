@@ -69,7 +69,7 @@ const schema = defineSchema({
     sender: v.id("users"),
     text: v.string(),
     createdAt: v.number()
-  })
+  }),
 
 });
 

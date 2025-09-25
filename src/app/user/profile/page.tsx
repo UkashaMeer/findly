@@ -6,11 +6,10 @@ import { api } from '../../../../convex/_generated/api'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Id } from '../../../../convex/_generated/dataModel'
 import { useUser } from '@clerk/nextjs'
-import { Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PostCards } from '@/components/global/Post/PostCards'
 import { sinceTime } from '@/lib/sinceTime'
-import ProfileMainPart from '@/components/global/profile/ProfileMainPart'
+import ProfileHeader from '@/components/global/profile/ProfileHeader'
 
 export default function page() {
 
@@ -23,10 +22,9 @@ export default function page() {
   const user = useQuery(api.user.getUserById, isSignedIn && isLoaded && userId ? { userId } : "skip")
   const currentUser = useQuery(api.user.getCurrentUser, isSignedIn && isLoaded && userId ? {} : "skip")
   const suggestUsers = useQuery(api.user.getSomeUser, isSignedIn && isLoaded && userId ? {} : "skip")
-  const myPosts = useQuery(api.item.getPostByUserId, {
+  const myPosts = useQuery(api.item.getPostByUserId, isSignedIn && isLoaded && userId ? {
     userId
-  })
-  console.log(suggestUsers)
+  } : "skip")
 
   const handleProfileLink = (userId: any) => {
     if (userId){
@@ -34,12 +32,16 @@ export default function page() {
     }
   }
 
+  if (!user) { 
+    return <div>Loading...</div>
+  }
+
   return (
     <div className="w-[calc(100%_-_20px)] mt-16 ml-2 mb-4 flex gap-2 items-start">
 
       <div className='w-2/3'>
         {/* Top Profile */}
-        <ProfileMainPart user={user} userId={userId} currentUser={currentUser} />
+        <ProfileHeader user={user} userId={userId} currentUser={currentUser} />
 
         {/* About User */}
         <div className='bg-white shadow-xs w-full rounded-md border-border border-1 overflow-hidden relative mt-2 p-4'>

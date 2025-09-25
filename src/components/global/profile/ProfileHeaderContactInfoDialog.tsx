@@ -3,7 +3,7 @@ import { User } from "@/lib/types";
 import { Calendar, LinkedinIcon, Mail, MapPin, PhoneCall } from "lucide-react";
 import Link from "next/link";
 
-export default function ProfileContactInfoDialog({ openContactInfo, setOpenContactInfo, user, userId }: { openContactInfo: any, setOpenContactInfo: any, user: User, userId: any }) {
+export default function ProfileHeaderContactInfoDialog({ openContactInfo, setOpenContactInfo, user, userId }: { openContactInfo: any, setOpenContactInfo: any, user: User, userId: any }) {
     const contactInfoData = [
         {
             name: "Linkedin",

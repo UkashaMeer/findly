@@ -4,7 +4,7 @@ import { MessageCircle } from "lucide-react";
 import { api } from "../../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
 
-export default function CreateConversation({ chatWithUserId }: any) {
+export default function CreateConversation({ chatWithUserId, className }: any) {
     const router = useRouter()
     const createConversation = useMutation(api.conversation.getOrCreateConversations)
 
@@ -22,7 +22,7 @@ export default function CreateConversation({ chatWithUserId }: any) {
     }
 
     return (
-        <Button className="cursor-pointer flex-1" onClick={handleCreateConversation}>
+        <Button className={`cursor-pointer flex-1 ${className}`} onClick={handleCreateConversation}>
             <MessageCircle size={14} />
             Chat
         </Button>

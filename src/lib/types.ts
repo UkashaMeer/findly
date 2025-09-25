@@ -3,20 +3,24 @@ import { Id } from "../../convex/_generated/dataModel";
 export type SignInFlow = "signIn" | "signUp"
 
 export interface User {
-  _id: Id<"users">
-  _creationTime: number
-  clerkId: string
-  createdAt: number
-  updatedAt: number
-  name: string
-  email: string
-  image: string
-  dateOfBirth: number
-  tagline: string
-  address: string
-  phoneNumber: string
-  about: string
-  role: "user" | "admin" | (string & {})
+  _id?: Id<"users">
+  _creationTime?: number
+  clerkId?: string
+  createdAt?: number
+  updatedAt?: number
+  name?: string
+  email?: string
+  image?: string
+  dateOfBirth?: number
+  tagline?: string
+  address?: string
+  phoneNumber?: string
+  about?: string
+  followers?: Id<"users">[] 
+  following?: Id<"users">[]   
+  trustPoints?: Id<"users">[] 
+  reports?: Id<"users">[]
+  role?: "user" | "admin"
 }
 
 export interface Item {
@@ -77,4 +81,10 @@ export interface Comment {
     image: string
     role: "user" | "admin"
   } | null
+}
+
+export type ProfileHeaderProps = {
+  user: User | null | undefined
+  userId: Id<"users">
+  currentUser: User | null | undefined
 }

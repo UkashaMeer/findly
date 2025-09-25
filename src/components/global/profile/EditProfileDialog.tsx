@@ -11,7 +11,7 @@ import { api } from '../../../../convex/_generated/api'
 import { toast } from 'sonner'
 
 
-export default function EditProfileDialog({ openEditProfileDialog, setOpenEditProfileDialog, currentUser }: { openEditProfileDialog: any, setOpenEditProfileDialog: any, currentUser: User }) {
+export default function EditProfileDialog({ openEditProfileDialog, setOpenEditProfileDialog, currentUser }: { openEditProfileDialog: any, setOpenEditProfileDialog: any, currentUser: User | null | undefined  }) {
 
     const editUser = useMutation(api.user.editUser)
     const generateUploadUrl = useMutation(api.user.generateUploadUrl)
